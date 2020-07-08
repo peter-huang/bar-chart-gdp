@@ -1,5 +1,6 @@
 {
   "name": "bar-chart-gdp",
+  "homepage": "https://www.peterhuang.net/projects/bar-chart-gdp/",
   "version": "0.1.0",
   "private": true,
   "dependencies": {

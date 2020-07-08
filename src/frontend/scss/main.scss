@@ -1,0 +1,39 @@
+// Mixin to prefix a property
+//// @author Hugo Giraudel
+//// @param {String} $property 			- Property name
+//// @param {*} $value 					    - Property value
+//// @param {List} $prefixes (())   - List of prefixes to print
+
+@mixin prefix($property, $value) {
+  $prefixes: webkit moz ms o;
+
+  @each $prefix in $prefixes {
+    #{'-' + $prefix + '-' + $property}: #{$value};
+  }
+  // Output standard non-prefixed declaration
+  #{$property}: #{$value};
+}
+
+// Mixin to prefix animation
+//// @param {String} $animation-name - Name of the animation
+@mixin keyframes($animation-name) {
+  @-webkit-keyframes #{$animation-name} {
+    @content;
+  }
+
+  @-moz-keyframes #{$animation-name} {
+    @content;
+  }
+
+  @-ms-keyframes #{$animation-name} {
+    @content;
+  }
+
+  @-o-keyframes #{$animation-name} {
+    @content;
+  }
+
+  @keyframes #{$animation-name} {
+    @content;
+  }
+}
