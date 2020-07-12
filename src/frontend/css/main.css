@@ -39,7 +39,7 @@ body {
 }
 
 #chart svg {
-  border: 5px purple solid;
+  border: 0px purple solid;
 }
 
 #chart div {

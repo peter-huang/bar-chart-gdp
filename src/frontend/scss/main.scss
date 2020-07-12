@@ -91,7 +91,7 @@ body {
   @include prefix("transform", "translate(-50%, -50%)");
 
   svg {
-    border: 5px purple solid;
+    border: 0px purple solid;
   }
 
   div {

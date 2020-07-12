@@ -71,8 +71,10 @@ const BarChart = ({ data }) => {
   const [gdp, setGdp] = useState([]);
 
   useEffect(() => {
+    // update data
     setGdp(() => data);
 
+    // draw bar
     if (data != null && data.length > 0) {
       drawBarChart(data);
     }
@@ -90,13 +92,14 @@ const BarChart = ({ data }) => {
     const margin = 10;
 
     // bar settings
-    const barWidth = 10;
+    const barWidth = 20;
     const barHeight = 2;
 
     // scales
     const xScale = d3.scaleBand();
     xScale.domain(years);
-    xScale.range([0, width - padding]);
+    // xScale.domain([d3.min(data, (d) => d[0]), d3.max(data, (d) => d[0])]);
+    xScale.range([padding, width - padding]);
 
     const yScale = d3.scaleLinear();
     yScale.domain([0, d3.max(data, (d) => d[1])]);
@@ -132,7 +135,10 @@ const BarChart = ({ data }) => {
       .enter()
       .append("rect")
       .attr("class", "bar")
-      .attr("x", (d, i) => padding * 2 * i)
+      .attr(
+        "x",
+        (d, i) => xScale(d[0]) - barWidth / 2 + padding * 2 + barWidth / 4
+      )
       .attr("y", (d, i) => height - yScale(d[1]) - padding)
       .attr("width", barWidth)
       .attr("height", (d, i) => yScale(d[1]));
