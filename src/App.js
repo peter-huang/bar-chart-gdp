@@ -68,12 +68,7 @@ const App = () => {
 };
 
 const BarChart = ({ data }) => {
-  const [gdp, setGdp] = useState([]);
-
   useEffect(() => {
-    // update data
-    setGdp(() => data);
-
     // draw bar
     if (data != null && data.length > 0) {
       drawBarChart(data);
@@ -98,7 +93,7 @@ const BarChart = ({ data }) => {
     // scales
     const xScale = d3.scaleBand();
     xScale.domain(years);
-    // xScale.domain([d3.min(data, (d) => d[0]), d3.max(data, (d) => d[0])]);
+    //xScale.domain([d3.min(data, (d) => d[0]), d3.max(data, (d) => d[0])]);
     xScale.range([padding, width - padding]);
 
     const yScale = d3.scaleLinear();
@@ -135,13 +130,12 @@ const BarChart = ({ data }) => {
       .enter()
       .append("rect")
       .attr("class", "bar")
-      .attr(
-        "x",
-        (d, i) => xScale(d[0]) - barWidth / 2 + padding * 2 + barWidth / 4
-      )
-      .attr("y", (d, i) => height - yScale(d[1]) - padding)
-      .attr("width", barWidth)
-      .attr("height", (d, i) => yScale(d[1]));
+      .attr("x", (d, i) => xScale(d[0]))
+      .attr("y", (d, i) => yScale(d[1]))
+      .attr("width", xScale.bandwidth())
+      .attr("height", (d, i) => {
+        return height - padding - yScale(d[1]);
+      });
     svg
       .append("g")
       .attr("id", "x-axis")
