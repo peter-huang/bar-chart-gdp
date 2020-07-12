@@ -53,10 +53,10 @@ body {
 
 #chart .bar {
   color: pink;
-  fill: red;
+  fill: #4a4e69;
 }
 
 #chart .bar:hover {
-  fill: green;
+  fill: #22223b;
 }
 /*# sourceMappingURL=main.css.map */

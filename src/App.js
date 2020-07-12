@@ -25,15 +25,36 @@ const App = () => {
           if (reqStatus === 0 || (reqStatus = 200 && reqStatus < 400)) {
             let e = JSON.parse(req.responseText);
             const data = [
-              [2011, 45],
-              [2012, 47],
-              [2013, 52],
-              [2014, 70],
-              [2015, 75],
-              [2016, 78],
+              ["1950-01-01", 47],
+              ["1950-04-01", 52],
+              ["1950-07-01", 70],
+              ["1950-10-01", 75],
+              ["1951-01-01", 47],
+              ["1951-04-01", 52],
+              ["1951-07-01", 70],
+              ["1951-10-01", 75],
+              ["1952-01-01", 47],
+              ["1952-04-01", 52],
+              ["1952-07-01", 70],
+              ["1952-10-01", 75],
+              ["1953-01-01", 47],
+              ["1953-04-01", 52],
+              ["1953-07-01", 70],
+              ["1953-10-01", 75],
             ];
 
-            setData(() => data);
+            let f = [];
+
+            e.data.forEach((d) => {
+              f.push([d[0], d[1], formatYear(d[0]), formatDate(d[0])]);
+            });
+            /*
+            data.forEach((d) => {
+              f.push([formatYear(d[0]), d[1], formatDate(d[0])]);
+            });
+            */
+
+            setData(() => f);
           }
         }
       };
@@ -42,6 +63,54 @@ const App = () => {
     };
 
     fetchData();
+  };
+
+  const formatYear = (date) => {
+    let year = parseInt(date.substring(0, 4));
+    let month = parseInt(date.substring(5, 7));
+
+    switch (month) {
+      case 1:
+        year += 0;
+        break;
+      case 4:
+        year += 0.25;
+        break;
+
+      case 7:
+        year += 0.5;
+        break;
+      case 10:
+        year += 0.75;
+        break;
+    }
+
+    return year;
+  };
+
+  const formatDate = (date, val) => {
+    let year = date.substring(0, 4);
+    let month = date.substring(5, 7);
+
+    let formatted = year;
+
+    switch (month) {
+      case "01":
+        formatted += " Q1";
+        break;
+      case "04":
+        formatted += " Q2";
+        break;
+
+      case "07":
+        formatted += " Q3";
+        break;
+      case "10":
+        formatted += " Q4";
+        break;
+    }
+
+    return formatted;
   };
 
   useEffect(() => {
@@ -78,30 +147,44 @@ const BarChart = ({ data }) => {
   const drawBarChart = (gdpData) => {
     let data = gdpData;
     let years = [];
-    data.forEach((e) => years.push(e[0]));
+    data.forEach((e) => years.push(e[2]));
+    console.log(years);
 
     // chart settings
-    const width = 700;
-    const height = 300;
-    const padding = 25;
+    const width = 800;
+    const height = 500;
+    const padding = 50;
     const margin = 10;
 
     // bar settings
-    const barWidth = 20;
+    const barWidth = 2;
     const barHeight = 2;
 
     // scales
     const xScale = d3.scaleBand();
     xScale.domain(years);
-    //xScale.domain([d3.min(data, (d) => d[0]), d3.max(data, (d) => d[0])]);
     xScale.range([padding, width - padding]);
 
     const yScale = d3.scaleLinear();
     yScale.domain([0, d3.max(data, (d) => d[1])]);
     yScale.range([height - padding, padding]);
 
+    const xTimeScale = d3.scaleTime();
+    xTimeScale.domain([
+      d3.min(data, (d) => new Date(d[2])),
+      d3.max(data, (d) => new Date(d[2])),
+    ]);
+    xTimeScale.range([padding, width - padding]);
+
     // axis
-    const xAxis = d3.axisBottom(xScale).tickFormat(d3.format("d"));
+    const xAxis = d3
+      .axisBottom(xScale)
+      .tickFormat((d) => (d.toString().indexOf(".") < 0 ? d : ""))
+      .tickValues(
+        xScale.domain().filter((d, i) => {
+          return !(i % 10);
+        })
+      );
     const yAxis = d3.axisLeft(yScale);
 
     // setting up title
@@ -130,8 +213,10 @@ const BarChart = ({ data }) => {
       .enter()
       .append("rect")
       .attr("class", "bar")
-      .attr("x", (d, i) => xScale(d[0]))
-      .attr("y", (d, i) => yScale(d[1]))
+      .attr("data-date", (d) => d[0])
+      .attr("data-gdp", (d) => d[1])
+      .attr("x", (d) => xScale(d[2]))
+      .attr("y", (d) => yScale(d[1]))
       .attr("width", xScale.bandwidth())
       .attr("height", (d, i) => {
         return height - padding - yScale(d[1]);
