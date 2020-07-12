@@ -68,15 +68,17 @@ const App = () => {
 };
 
 const BarChart = ({ data }) => {
-  const [gdp, setGdp] = useState(data);
+  const [gdp, setGdp] = useState([]);
 
   useEffect(() => {
-    console.log("child useEffect " + gdp);
-    drawBarChart(gdp);
-  }, []);
+    setGdp(() => data);
+
+    if (data != null && data.length > 0) {
+      drawBarChart(data);
+    }
+  }, [data]);
 
   const drawBarChart = (gdpData) => {
-    console.log(gdpData);
     let data = gdpData;
     let years = [];
     data.forEach((e) => years.push(e[0]));
