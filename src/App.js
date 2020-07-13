@@ -3,11 +3,21 @@ import logo from "./logo.svg";
 import "./frontend/css/main.css";
 import * as d3 from "d3";
 
+/*
+ * Formats date into unix time in seconds
+ *
+ * @param data - Date string in YYYY-MM-DD format
+ */
 const formatDateToSeconds = (date) => {
   let t = new Date(date);
   return t.getTime() / 1000;
 };
 
+/*
+ * Adds appropriate increment for scaleBand
+ *
+ * @param data - Date string in YYYY-MM-DD format
+ */
 const formatYear = (date) => {
   let year = parseInt(date.substring(0, 4));
   let month = parseInt(date.substring(5, 7));
@@ -31,7 +41,12 @@ const formatYear = (date) => {
   return year;
 };
 
-const formatDate = (date, val) => {
+/*
+ * Adds appropriate Q1, Q2, Q3, Q4 strings based on month value
+ *
+ * @param data - Date string in YYYY-MM-DD format
+ */
+const formatDate = (date) => {
   let year = date.substring(0, 4);
   let month = date.substring(5, 7);
 
@@ -57,11 +72,11 @@ const formatDate = (date, val) => {
 };
 
 const App = () => {
+  // Sets the initial state
   const [data, setData] = useState([]);
 
+  // Gets json source asynchronously
   const getData = () => {
-    console.log("parent getData");
-
     const fetchData = async () => {
       const req = new XMLHttpRequest();
       req.open(
@@ -77,25 +92,6 @@ const App = () => {
           // request was successful
           if (reqStatus === 0 || (reqStatus = 200 && reqStatus < 400)) {
             let e = JSON.parse(req.responseText);
-            /*
-            const data = [
-              ["1950-01-01", 47],
-              ["1950-04-01", 52],
-              ["1950-07-01", 70],
-              ["1950-10-01", 75],
-              ["1951-01-01", 47],
-              ["1951-04-01", 52],
-              ["1951-07-01", 70],
-              ["1951-10-01", 75],
-              ["1952-01-01", 47],
-              ["1952-04-01", 52],
-              ["1952-07-01", 70],
-              ["1952-10-01", 75],
-              ["1953-01-01", 47],
-              ["1953-04-01", 52],
-              ["1953-07-01", 70],
-              ["1953-10-01", 75],
-            ];*/
 
             let f = [];
 
@@ -123,6 +119,7 @@ const App = () => {
   useEffect(() => {
     getData();
   }, []);
+
   return (
     <div class="container h-100">
       <div class="row h-100">
@@ -151,6 +148,11 @@ const BarChart = ({ data }) => {
     }
   }, [data]);
 
+  /*
+   * Draws the bar chart
+   *
+   * @param data - gross domestic data
+   */
   const drawBarChart = (gdpData) => {
     let data = gdpData;
     let years = [];
@@ -163,9 +165,10 @@ const BarChart = ({ data }) => {
     const margin = 10;
 
     // bar settings
-    const barWidth = 2;
+    const barWidth = (width - padding) / data.length;
     const barHeight = 2;
 
+    // scales
     const xScale = d3.scaleTime();
     xScale.domain([
       d3.min(data, (d) => new Date(d[0])),
@@ -212,6 +215,13 @@ const BarChart = ({ data }) => {
       .attr("width", width)
       .attr("height", height);
 
+    // settings tooltip
+    let tooltip = d3
+      .select("#chart")
+      .append("div")
+      .attr("id", "tooltip")
+      .attr("style", "position: absolute; opacity: 0;");
+
     // title
     svg
       .append("text")
@@ -233,7 +243,28 @@ const BarChart = ({ data }) => {
       .attr("width", barWidth)
       .attr("height", (d, i) => {
         return height - padding - yScale(d[1]);
-      });
+      })
+      .on("mouseover", (d, i) => {
+        let t = d[3] + " " + "$" + d[1] + " Billion";
+
+        let e = document.getElementById("chart").getBoundingClientRect();
+
+        let f = document.getElementById("tooltip").getBoundingClientRect();
+
+        let computedWidth = ((e.width - 2 * padding) / data.length) * i + "px";
+
+        console.log(computedWidth);
+        tooltip.transition().duration(100).style("opacity", 1);
+        tooltip
+          .html(t)
+          .style("top", e.height / 2 + "px")
+          .style("left", computedWidth)
+          .attr("data-date", d[0]);
+      })
+      .on("mouseout", (d) => {
+        tooltip.transition().duration(100).style("opacity", 0.0);
+      })
+      .on("mousemove", (d) => {});
 
     // x-axis
     svg

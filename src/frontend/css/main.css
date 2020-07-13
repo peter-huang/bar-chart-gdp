@@ -26,6 +26,32 @@ body {
   border: 5px purple solid;
 }
 
+#tooltip {
+  background-color: #35384b;
+  font-size: 0.75em;
+  color: white;
+  padding: 0.5em;
+  border-radius: 0.5em;
+  text-align: center;
+  -ms-box-shadow: 2px 2px 10px 0px rgba(0,0,0,0.75);
+  -o-box-shadow: 2px 2px 10px 0px rgba(0,0,0,0.75);
+  box-shadow: 2px 2px 10px 0px rgba(0,0,0,0.75);
+}
+
+.tooltip-active {
+  animation-name: tooltip-active;
+  animation-timing-function: linear;
+  animation-duration: 1.25s;
+  animation-fill-mode: forwards;
+}
+
+.tooltip-inactive {
+  animation-name: tooltip-ianctive;
+  animation-timing-function: linear;
+  animation-duration: 1.25s;
+  animation-fill-mode: forwards;
+}
+
 #chart {
   position: absolute;
   top: 50%;
@@ -59,5 +85,23 @@ body {
 
 #chart .bar:hover {
   fill: #22223b;
+}
+
+@keyframes tooltip-active {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes tooltip-inactive {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
 }
 /*# sourceMappingURL=main.css.map */
