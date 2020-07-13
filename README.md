@@ -6,10 +6,6 @@ A React-D3.js bar chart application completed for the freecodecamp data visualiz
 
 **User Story #1:** Shows the US gross domestic product from a remote JSON source file.
 
-**User Story #2:** Able to zoom in and out for precise viewing.
-
-**User Story #3:** Able to pan left and right for precise viewing.
-
 ## Getting Started
 
 In the project directory, you can run:

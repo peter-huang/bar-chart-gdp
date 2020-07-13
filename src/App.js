@@ -3,6 +3,59 @@ import logo from "./logo.svg";
 import "./frontend/css/main.css";
 import * as d3 from "d3";
 
+const formatDateToSeconds = (date) => {
+  let t = new Date(date);
+  return t.getTime() / 1000;
+};
+
+const formatYear = (date) => {
+  let year = parseInt(date.substring(0, 4));
+  let month = parseInt(date.substring(5, 7));
+
+  switch (month) {
+    case 1:
+      year += 0;
+      break;
+    case 4:
+      year += 0.25;
+      break;
+
+    case 7:
+      year += 0.5;
+      break;
+    case 10:
+      year += 0.75;
+      break;
+  }
+
+  return year;
+};
+
+const formatDate = (date, val) => {
+  let year = date.substring(0, 4);
+  let month = date.substring(5, 7);
+
+  let formatted = year;
+
+  switch (month) {
+    case "01":
+      formatted += " Q1";
+      break;
+    case "04":
+      formatted += " Q2";
+      break;
+
+    case "07":
+      formatted += " Q3";
+      break;
+    case "10":
+      formatted += " Q4";
+      break;
+  }
+
+  return formatted;
+};
+
 const App = () => {
   const [data, setData] = useState([]);
 
@@ -24,6 +77,7 @@ const App = () => {
           // request was successful
           if (reqStatus === 0 || (reqStatus = 200 && reqStatus < 400)) {
             let e = JSON.parse(req.responseText);
+            /*
             const data = [
               ["1950-01-01", 47],
               ["1950-04-01", 52],
@@ -41,18 +95,19 @@ const App = () => {
               ["1953-04-01", 52],
               ["1953-07-01", 70],
               ["1953-10-01", 75],
-            ];
+            ];*/
 
             let f = [];
 
             e.data.forEach((d) => {
-              f.push([d[0], d[1], formatYear(d[0]), formatDate(d[0])]);
+              f.push([
+                d[0],
+                d[1],
+                formatYear(d[0]),
+                formatDate(d[0]),
+                formatDateToSeconds(d[0]),
+              ]);
             });
-            /*
-            data.forEach((d) => {
-              f.push([formatYear(d[0]), d[1], formatDate(d[0])]);
-            });
-            */
 
             setData(() => f);
           }
@@ -63,54 +118,6 @@ const App = () => {
     };
 
     fetchData();
-  };
-
-  const formatYear = (date) => {
-    let year = parseInt(date.substring(0, 4));
-    let month = parseInt(date.substring(5, 7));
-
-    switch (month) {
-      case 1:
-        year += 0;
-        break;
-      case 4:
-        year += 0.25;
-        break;
-
-      case 7:
-        year += 0.5;
-        break;
-      case 10:
-        year += 0.75;
-        break;
-    }
-
-    return year;
-  };
-
-  const formatDate = (date, val) => {
-    let year = date.substring(0, 4);
-    let month = date.substring(5, 7);
-
-    let formatted = year;
-
-    switch (month) {
-      case "01":
-        formatted += " Q1";
-        break;
-      case "04":
-        formatted += " Q2";
-        break;
-
-      case "07":
-        formatted += " Q3";
-        break;
-      case "10":
-        formatted += " Q4";
-        break;
-    }
-
-    return formatted;
   };
 
   useEffect(() => {
@@ -148,7 +155,6 @@ const BarChart = ({ data }) => {
     let data = gdpData;
     let years = [];
     data.forEach((e) => years.push(e[2]));
-    console.log(years);
 
     // chart settings
     const width = 800;
@@ -160,38 +166,44 @@ const BarChart = ({ data }) => {
     const barWidth = 2;
     const barHeight = 2;
 
-    // scales
-    const xScale = d3.scaleBand();
-    xScale.domain(years);
+    const xScale = d3.scaleTime();
+    xScale.domain([
+      d3.min(data, (d) => new Date(d[0])),
+      d3.max(data, (d) => new Date(d[0])),
+    ]);
     xScale.range([padding, width - padding]);
 
     const yScale = d3.scaleLinear();
     yScale.domain([0, d3.max(data, (d) => d[1])]);
     yScale.range([height - padding, padding]);
 
-    const xTimeScale = d3.scaleTime();
-    xTimeScale.domain([
-      d3.min(data, (d) => new Date(d[2])),
-      d3.max(data, (d) => new Date(d[2])),
-    ]);
-    xTimeScale.range([padding, width - padding]);
+    const unixScale = d3.scaleLinear();
+    unixScale.domain([d3.min(data, (d) => d[4]), d3.max(data, (d) => d[4])]);
+    unixScale.range([padding, width - padding]);
 
-    // axis
+    /*
+    const xBandScale = d3.scaleBand();
+    xBandScale.domain(years);
+    xBandScale.range([padding, width - padding]);
+
     const xAxis = d3
-      .axisBottom(xScale)
+      .axisBottom(xBandScale)
       .tickFormat((d) => (d.toString().indexOf(".") < 0 ? d : ""))
       .tickValues(
-        xScale.domain().filter((d, i) => {
+        xBandScale.domain().filter((d, i) => {
           return !(i % 10);
         })
-      );
+    );*/
+
+    // axis
+    const xAxis = d3.axisBottom(xScale);
     const yAxis = d3.axisLeft(yScale);
 
     // setting up title
     d3.select("#chart")
       .append("div")
       .attr("id", "title")
-      .text("United States GDP");
+      .text("United States Gross Domestic Product (1947 - 2015)");
 
     // setting up svg
     const svg = d3
@@ -207,6 +219,7 @@ const BarChart = ({ data }) => {
       .attr("id", "chart")
       .text("United States GDP");
 
+    // bars
     svg
       .selectAll("rect")
       .data(data)
@@ -215,22 +228,45 @@ const BarChart = ({ data }) => {
       .attr("class", "bar")
       .attr("data-date", (d) => d[0])
       .attr("data-gdp", (d) => d[1])
-      .attr("x", (d) => xScale(d[2]))
+      .attr("x", (d) => unixScale(d[4]))
       .attr("y", (d) => yScale(d[1]))
-      .attr("width", xScale.bandwidth())
+      .attr("width", barWidth)
       .attr("height", (d, i) => {
         return height - padding - yScale(d[1]);
       });
+
+    // x-axis
     svg
       .append("g")
       .attr("id", "x-axis")
       .attr("transform", "translate(0," + (height - padding) + ")")
       .call(xAxis);
+
+    svg
+      .append("text")
+      .style("font-size", "0.75em")
+      .attr("id", "x-axis-title")
+      .attr("x", width - 4 * padding)
+      .attr("y", height - padding / 4)
+      .style("text-anchor", "middle")
+      .text("More Info: http://www.bea.gov/national/pdf/nipaguid.pdf");
+
+    // y-axis
     svg
       .append("g")
       .attr("id", "y-axis")
       .attr("transform", "translate(" + padding + ",0)")
       .call(yAxis);
+
+    svg
+      .append("text")
+      .style("font-size", "0.75em")
+      .attr("id", "y-axis-title")
+      .attr("x", width / 2)
+      .attr("y", height + 1.75 * padding)
+      .style("text-anchor", "middle")
+      .attr("transform", "rotate(90," + width / 2 + "," + height / 2 + ")")
+      .text("GDP (Billion in dollars)");
   };
 
   return (
